@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify content and scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+
+      - name: Import project
+        run: |
+          godot --headless --path . --import
+
+      - name: Parse every script
+        run: |
+          status=0
+          while IFS= read -r f; do
+            res="res/${f#./}"
+            out=$(godot --headless --path . --check-only --script "$res" 2>&1 \
+                  | grep -E "Parse Error|Compile Error" || true)
+            # --check-only does not register autoloads; Game/Sfx "not found" is expected.
+            out=$(printf '%s' "$out" | grep -v "Identifier not found: \(Game\|Sfx\)" || true)
+            if [ -n "$out" ]; then
+              echo "::error file=${f}::${out}"
+              status=1
+            fi
+          done < <(find src tools -name '*.gd')
+          exit $status
+
+      - name: Verify story and level content
+        run: godot --headless --path . res://tools/verify.tscn
+
+      - name: Check generated assets are in sync
+        run: |
+          pip install --quiet Pillow
+          python tools/gen_assets.py
+          if ! git diff --quiet -- src/data/tile_index.gd; then
+            echo "::error::tile_index.gd is out of sync - re-run tools/gen_assets.py and commit"
+            git --no-pager diff -- src/data/tile_index.gd
+            exit 1
+          fi
+          echo "generated tile index matches the atlas"
+
+  structure:
+    name: Project structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for stray large files
+        run: |
+          # Binary assets are fine, but nothing should dwarf the repo.
+          find . -path ./.git -prune -o -type f -size +8M -print \
+            | tee /tmp/big.txt
+          if [ -s /tmp/big.txt ]; then
+            echo "::error::files larger than 8MB:"
+            cat /tmp/big.txt
+            exit 1
+          fi
+      - name: Confirm no editor scratch state is committed
+        run: |
+          if git ls-files | grep -E '^\.godot/|^build/|export_presets.cfg'; then
+            echo "::error::generated state is tracked in git"
+            exit 1
+          fi
+          echo "repository is clean"

@@ -1,0 +1,25 @@
+# Godot 4
+.godot/
+/android/
+export_presets.cfg
+
+# Godot exports / builds
+build/
+*.exe
+*.pck
+*.zip
+*.x86_64
+*.app
+
+# Generated debug output (see tools/make_screenshots.sh)
+tools/preview.png
+tools/__pycache__/
+tools/*.png.bak
+
+# Editor / OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
