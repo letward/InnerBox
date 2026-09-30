@@ -41,6 +41,7 @@ var _has_boss := false
 func build(area_id: String, spawn_id: String) -> void:
 	level_id = area_id
 	level = LevelData.get_level(area_id)
+	_apply_grade()
 
 	tiles = _new_node("Tiles")
 	solids = _new_node("Solids")
@@ -63,6 +64,17 @@ func build(area_id: String, spawn_id: String) -> void:
 	_evaluate_plates()
 	boss_health.emit(0, 0, false)
 	add_to_group("world")
+
+
+## A single CanvasModulate gives each area its own colour grade for free: the
+## hollow goes cold and dim, the core goes hot, the village stays neutral.
+func _apply_grade() -> void:
+	var tint: Variant = level.get("tint", null)
+	if tint == null:
+		return
+	var cm := CanvasModulate.new()
+	cm.color = tint
+	add_child(cm)
 
 
 func _new_node(n: String) -> Node2D:
@@ -130,17 +142,22 @@ func _spawn_boss(cell: Vector2i) -> void:
 	_has_boss = true
 
 
-## A chest or a loose ember that ends up inside a tree is unreachable, which is
-## worse than ugly: step out to the nearest walkable neighbour if the level data
-## ever puts one there.
+## Scenery is authored by seeded scatter and content by hand, so the two can
+## collide: a lamp post lands where a chest was placed. A pickup outranks
+## scenery, so it clears the prop back to the ground underneath. If the ground
+## itself is a wall (a genuine authoring mistake) step out to a free neighbour.
 func _clear_for_pickup(cell: Vector2i) -> void:
-	if not builder.is_solid(builder.tile_at(cell)):
+	var top := builder.tile_at(cell)
+	if not LevelBuilder.is_solid(top):
+		return
+	var ground := builder.ground_at(cell)
+	if not builder.is_solid(ground):
+		builder.set_tile(cell, ground)
 		return
 	var fixed := _free_cell(cell)
 	if fixed != cell:
-		builder.set_tile(cell, builder.tile_at(fixed))
-		push_warning("pickup at %s was inside %s, moved to %s"
-			% [cell, builder.tile_at(fixed), fixed])
+		builder.set_tile(cell, builder.ground_at(fixed))
+		push_warning("pickup at %s sat inside %s; ground cleared", [cell, top])
 
 
 func _spawn_player(spawn_id: String) -> void:

@@ -277,8 +277,12 @@ func _npc_line() -> String:
 		"tink":
 			return "tink_intro"
 		"pip":
+			if Game.has_flag("has_crank"):
+				return "pip_crank_done"
+			if Game.has_item("crank"):
+				return "pip_crank_give"
 			if Game.quest_state("paper_moon") == "done":
-				return "pip_done"
+				return "pip_crank_ask"
 			if Game.has_item("moon"):
 				return "pip_again"
 			return "pip_intro"

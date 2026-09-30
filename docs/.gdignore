@@ -1,0 +1,2 @@
+# Keeps the Godot editor from importing the documentation screenshots as
+# game assets: they live inside the project folder but are not resources.

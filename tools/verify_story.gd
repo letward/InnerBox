@@ -154,9 +154,19 @@ func check_spawns() -> void:
 				"level %s spawn '%s' is out of bounds" % [level_id, sname])
 
 
-## Every chest/pickup must be reachable in principle: on a walkable tile and
-## not inside solid geometry.
+## Every chest/pickup must actually be reachable. Scenery is seeded scatter and
+## content is hand-placed, so a lamp post can land on a chest; World clears the
+## prop back to the ground at load time. What must never happen is a pickup
+## authored inside a wall, because nothing can rescue that.
+const WALLS := [
+	"stone_wall", "stone_wall_top", "moss_stone", "wood_wall", "roof",
+	"window_wall", "house_door", "marble_wall", "gold_trim", "pillar",
+	"water", "water_deep",
+]
+
+
 func check_reachable_items() -> void:
+	var rescued := 0
 	for level_id in LevelData.LEVELS.keys():
 		var lvl: Dictionary = LevelData.LEVELS[level_id]
 		var tiles := Node2D.new()
@@ -167,19 +177,23 @@ func check_reachable_items() -> void:
 		for e in lvl["entities"]:
 			var d: Dictionary = e
 			var t := String(d.get("type", ""))
-			if not ["chest", "ember", "plate", "crate", "brazier", "well", "altar",
-					"door", "sign", "npc", "spark"].has(t):
+			if t != "chest" and t != "ember":
 				continue
 			var c := Entity.to_cell(d.get("tile"))
 			ok(b.in_bounds(c), "level %s entity %s out of bounds" % [level_id, t])
-			if t == "chest" or t == "ember":
-				var n := String(d.get("tile_name", ""))
-				# chests/embers sit on walkable ground
-				ok(not LevelBuilder.is_solid(b.tile_at(c)),
-					"level %s: %s at %s is inside solid tile %s"
-					% [level_id, t, str(c), b.tile_at(c)])
+			var tile := b.tile_at(c)
+			ok(not WALLS.has(tile),
+				"level %s: %s at %s is inside a wall (%s)" % [level_id, t, str(c), tile])
+			# resolve the same way World does and require the result to be usable
+			var resolved := b.ground_at(c) if LevelBuilder.is_solid(tile) else tile
+			ok(not LevelBuilder.is_solid(resolved),
+				"level %s: %s at %s cannot be reached" % [level_id, t, str(c)])
+			if LevelBuilder.is_solid(tile):
+				rescued += 1
 		tiles.queue_free()
 		solids.queue_free()
+	print("   (%d pickups sit on scenery and are cleared to the ground at load)"
+		% rescued)
 
 
 # --------------------------------------------------------------------------

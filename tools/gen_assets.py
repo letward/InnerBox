@@ -142,6 +142,25 @@ TS = 16
 COLS = 16
 
 TILE_ORDER = []
+VARIANTS = {}
+
+## Tiles that are drawn so often that a single pattern becomes visible as a
+## repeating grid. Each gets several interchangeable frames; LevelBuilder picks
+## one per cell from a stable hash of its coordinates.
+VARIANT_COUNT = {
+    "grass": 3,
+    "grass_flowers": 2,
+    "grass_dark": 2,
+    "grass_tuft": 2,
+    "dirt": 2,
+    "path": 2,
+    "sand": 2,
+    "stone_floor": 3,
+    "brick_floor": 2,
+    "moss_stone": 2,
+    "marble_floor": 3,
+    "moss": 2,
+}
 
 
 def tile_sheet():
@@ -149,30 +168,48 @@ def tile_sheet():
     sheet = new(TS * COLS, TS * 8)
     d = ImageDraw.Draw(sheet)
     TILE_ORDER.clear()
+    VARIANTS.clear()
 
-    def add(name, fn):
-        idx = len(TILE_ORDER)
-        TILE_ORDER.append(name)
-        ox, oy = (idx % COLS) * TS, (idx // COLS) * TS
+    def add(name, fn, count=None):
+        n = count if count is not None else VARIANT_COUNT.get(name, 1)
+        idxs = []
+        for i in range(n):
+            label = name if i == 0 else "%s~%d" % (name, i)
+            idx = len(TILE_ORDER)
+            TILE_ORDER.append(label)
+            ox, oy = (idx % COLS) * TS, (idx // COLS) * TS
 
-        def sub(x, y, c):
-            px(d, ox + x, oy + y, c)
+            def sub(x, y, c, ox=ox, oy=oy):
+                px(d, ox + x, oy + y, c)
 
-        def srect(x, y, w, h, c):
-            for yy in range(y, y + h):
-                for xx in range(x, x + w):
-                    sub(xx, yy, c)
+            def srect(x, y, w, h, c, ox=ox, oy=oy):
+                for yy in range(y, y + h):
+                    for xx in range(x, x + w):
+                        sub(xx, yy, c)
 
-        fn(sub, srect, rng)
+            fn(sub, srect, random.Random(99 + idx * 7919))
+            idxs.append(idx)
+        if n > 1:
+            VARIANTS[name] = idxs
 
     # ---- ground -------------------------------------------------------
     def grass(sub, srect, rng):
         srect(0, 0, 16, 16, PAL["g1"])
-        noise_speckle(d, 0, 0, 1, 1, PAL["g1"], 0, rng)
-        for _ in range(26):
+        # clumps first, speckle second: flat noise alone reads as TV static
+        for _ in range(5):
+            cx, cy = rng.randrange(16), rng.randrange(16)
+            for y in range(max(0, cy - 2), min(16, cy + 3)):
+                for x in range(max(0, cx - 2), min(16, cx + 3)):
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= 5:
+                        sub(x, y, PAL["g2"])
+        for _ in range(16):
             sub(rng.randrange(16), rng.randrange(16), PAL["g2"])
-        for _ in range(10):
+        for _ in range(6):
             sub(rng.randrange(16), rng.randrange(16), PAL["g3"])
+        for _ in range(3):                      # stray blades
+            x, y = rng.randrange(1, 15), rng.randrange(3, 15)
+            sub(x, y, PAL["g3"])
+            sub(x, y + 1, PAL["g3"])
 
     add("grass", grass)
 
@@ -187,9 +224,15 @@ def tile_sheet():
 
     def grass_dark(sub, srect, rng):
         srect(0, 0, 16, 16, PAL["g1"])
-        for _ in range(22):
+        for _ in range(4):
+            cx, cy = rng.randrange(16), rng.randrange(16)
+            for y in range(max(0, cy - 2), min(16, cy + 3)):
+                for x in range(max(0, cx - 2), min(16, cx + 3)):
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= 6:
+                        sub(x, y, PAL["night"])
+        for _ in range(14):
             sub(rng.randrange(16), rng.randrange(16), PAL["night"])
-        for _ in range(8):
+        for _ in range(9):
             sub(rng.randrange(16), rng.randrange(16), PAL["g2"])
 
     add("grass_dark", grass_dark)
@@ -205,22 +248,38 @@ def tile_sheet():
 
     def path(sub, srect, rng):
         srect(0, 0, 16, 16, PAL["b3"])
-        for _ in range(34):
+        for _ in range(4):                      # packed-earth patches
+            cx, cy = rng.randrange(16), rng.randrange(16)
+            for y in range(max(0, cy - 1), min(16, cy + 2)):
+                for x in range(max(0, cx - 1), min(16, cx + 2)):
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= 2:
+                        sub(x, y, PAL["b2"])
+        for _ in range(20):
             sub(rng.randrange(16), rng.randrange(16), PAL["b2"])
-        for _ in range(8):
+        for _ in range(7):
             sub(rng.randrange(16), rng.randrange(16), PAL["b4"])
+        for _ in range(3):                      # pebbles
+            x, y = rng.randrange(16), rng.randrange(16)
+            sub(x, y, PAL["s3"])
+            sub(x + 1, y, PAL["s2"])
 
     add("path", path)
 
     def stone_floor(sub, srect, rng):
         srect(0, 0, 16, 16, PAL["s2"])
+        for _ in range(4):                      # worn patches
+            cx, cy = rng.randrange(16), rng.randrange(16)
+            for y in range(max(0, cy - 1), min(16, cy + 2)):
+                for x in range(max(0, cx - 1), min(16, cx + 2)):
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= 3:
+                        sub(x, y, PAL["s3"])
         for y in (0, 8):
             srect(0, y, 16, 1, PAL["s1"])
         for x in (0, 8):
             srect(x, 0, 1, 16, PAL["s1"])
-        for _ in range(12):
+        for _ in range(10):
             sub(rng.randrange(16), rng.randrange(16), PAL["s1"])
-        for _ in range(6):
+        for _ in range(5):
             sub(rng.randrange(16), rng.randrange(16), PAL["s3"])
 
     add("stone_floor", stone_floor)
@@ -260,7 +319,11 @@ def tile_sheet():
         srect(0, 0, 16, 16, PAL["m1"])
         for x in range(0, 16, 8):
             srect(x, 0, 1, 16, PAL["m2"])
-        for _ in range(10):
+        for _ in range(3):                      # veins
+            cx, cy = rng.randrange(16), rng.randrange(16)
+            for i in range(7):
+                sub(min(15, cx + i), min(15, cy + (1 if i % 3 else 0)), PAL["m2"])
+        for _ in range(8):
             sub(rng.randrange(16), rng.randrange(16), PAL["m2"])
 
     add("marble_floor", marble_floor)
@@ -380,12 +443,19 @@ def tile_sheet():
     add("moss_stone", moss_stone)
 
     def gold_trim(sub, srect, rng):
-        srect(0, 0, 16, 16, PAL["night"])
-        srect(0, 6, 16, 4, PAL["gold"])
-        srect(0, 7, 16, 2, PAL["b4"])
-        for x in range(0, 16, 4):
-            srect(x, 4, 2, 2, PAL["gold"])
-            srect(x, 10, 2, 2, PAL["gold"])
+        # an inlaid border, not a warning stripe: two thin gold lines with a
+        # slate base between them, so it sits under the floor instead of on it
+        srect(0, 0, 16, 16, PAL["m2"])
+        for _ in range(12):
+            sub(rng.randrange(16), rng.randrange(16), PAL["m1"])
+        srect(0, 4, 16, 1, PAL["gold"])
+        srect(0, 5, 16, 1, PAL["b4"])
+        srect(0, 10, 16, 1, PAL["gold"])
+        srect(0, 11, 16, 1, PAL["b1"])
+        for x in range(0, 16, 5):
+            srect(x, 2, 1, 3, PAL["b1"])
+            srect(x, 11, 1, 3, PAL["b1"])
+        srect(0, 7, 16, 1, PAL["s2"])
 
     add("gold_trim", gold_trim)
 
@@ -448,16 +518,26 @@ def tile_sheet():
 
     # ---- props --------------------------------------------------------
     def tree(sub, srect, rng):
-        srect(6, 10, 4, 6, PAL["b1"])
-        srect(7, 10, 1, 6, PAL["b2"])
-        disc(sub, 8, 7, 6.4, PAL["g1"])
+        # trunk with a root flare
+        srect(7, 11, 3, 5, PAL["b1"])
+        srect(7, 8, 3, 3, PAL["b1"])
+        srect(6, 15, 5, 1, PAL["b1"])
+        srect(7, 11, 1, 5, PAL["b2"])
+        # canopy: dark skirt, mid body, lit crown offset up-left
+        disc(sub, 8, 9, 6.6, PAL["night"])
+        disc(sub, 8, 7, 6.2, PAL["g1"])
         disc(sub, 6, 9, 4.2, PAL["g1"])
         disc(sub, 10, 9, 4.2, PAL["g1"])
-        disc(sub, 8, 5, 4.6, PAL["g2"])
+        disc(sub, 8, 5, 4.4, PAL["g2"])
         disc(sub, 6, 7, 3.0, PAL["g2"])
-        disc(sub, 10, 7, 3.0, PAL["g2"])
+        disc(sub, 10, 7, 3.0, PAL["g1"])
         disc(sub, 7, 4, 2.6, PAL["g3"])
-        disc(sub, 10, 5, 2.0, PAL["g3"])
+        disc(sub, 9, 3, 1.8, PAL["g3"])
+        # leaf notches so the silhouette is not a circle
+        for _ in range(5):
+            x, y = rng.randrange(2, 14), rng.randrange(1, 13)
+            if (x - 8) ** 2 + (y - 7) ** 2 <= 40:
+                sub(x, y, PAL["night"])
 
     add("tree", tree)
 
@@ -652,12 +732,29 @@ def tile_sheet():
         gd.append('\t"%s": %d,' % (n, i))
     gd += ['}', '',
            '',
+           '## Tile name -> interchangeable atlas frames. LevelBuilder picks one',
+           '## per cell from a stable hash, so large fields of one tile stop',
+           '## reading as a repeating grid.',
+           'const VARIANTS := {']
+    for name, idxs in sorted(VARIANTS.items()):
+        gd.append('\t"%s": [%s],' % (name, ", ".join(str(i) for i in idxs)))
+    gd += ['}', '',
+           '',
            'static func id(name: String) -> int:',
            '\treturn int(INDEX.get(name, 0))',
            '',
            '',
            'static func has(name: String) -> bool:',
-           '\treturn INDEX.has(name)', '']
+           '\treturn INDEX.has(name)',
+           '',
+           '',
+           'static func variant_for(name: String, cell_x: int, cell_y: int) -> int:',
+           '\tvar frames: Array = VARIANTS.get(name, [])',
+           '\tif frames.is_empty():',
+           '\t\treturn id(name)',
+           '\tvar h := (cell_x * 73856093) ^ (cell_y * 19349663)',
+           '\treturn int(frames[absi(h) % frames.size()])',
+           '']
     gd_path = os.path.join(ROOT, "src", "data", "tile_index.gd")
     os.makedirs(os.path.dirname(gd_path), exist_ok=True)
     with open(gd_path, "w") as f:

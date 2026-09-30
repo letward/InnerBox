@@ -28,6 +28,7 @@ const LEVELS := {
 	"size": Vector2i(48, 36),
 	"base": "grass",
 	"clear": "deep",
+	"tint": Color(1.0, 0.98, 0.94),
 	"ops": [
 		# ground variation
 		{"op": "blob", "cx": 12, "cy": 8, "rx": 7, "ry": 5, "tile": "grass_flowers"},
@@ -45,7 +46,13 @@ const LEVELS := {
 		{"op": "set", "x": 33, "y": 29, "tile": "bridge"},
 
 		# village plaza and crossroads
-		{"op": "rect", "x": 16, "y": 12, "w": 16, "h": 11, "tile": "stone_floor"},
+		{"op": "rect", "x": 18, "y": 13, "w": 12, "h": 9, "tile": "stone_floor"},
+		{"op": "frame", "x": 18, "y": 13, "w": 12, "h": 9, "tile": "grass_tuft"},
+		{"op": "set", "x": 20, "y": 15, "tile": "flower_red"},
+		{"op": "set", "x": 27, "y": 19, "tile": "flower_red"},
+		{"op": "set", "x": 25, "y": 14, "tile": "barrel"},
+		{"op": "set", "x": 21, "y": 20, "tile": "crate"},
+		{"op": "set", "x": 28, "y": 15, "tile": "crate"},
 		{"op": "path", "x1": 23, "y1": 1, "x2": 23, "y2": 34, "tile": "path"},
 		{"op": "path", "x1": 1, "y1": 21, "x2": 46, "y2": 21, "tile": "path"},
 		{"op": "rect", "x": 19, "y": 27, "w": 9, "h": 6, "tile": "path"},
@@ -81,6 +88,7 @@ const LEVELS := {
 		"start": Vector2i(23, 20),
 		"from_woods": Vector2i(23, 4),
 		"from_hollow": Vector2i(45, 20),
+		"from_attic": Vector2i(17, 9),
 	},
 	"entities": [
 		{"type": "npc", "id": "elder", "tile": [22, 15], "face": "down"},
@@ -95,6 +103,9 @@ const LEVELS := {
 		 "tile_name": "arch", "label": "Whisperwood"},
 		{"type": "door", "tile": [46, 20], "to": "hollow", "spawn": "from_village",
 		 "tile_name": "arch", "label": "The Rust Hollow"},
+		{"type": "door", "tile": [17, 7], "to": "attic", "spawn": "from_village",
+		 "tile_name": "house_door", "label": "the loft", "no_tile": true,
+		 "on_enter": {"quest": "the_last_crank"}},
 		{"type": "chest", "tile": [31, 29], "item": "salve", "qty": 2, "id": "chest_village_1"},
 		{"type": "chest", "tile": [20, 29], "item": "echo_village", "qty": 1, "id": "chest_echo_village"},
 		{"type": "chest", "tile": [26, 29], "item": "cog", "qty": 2, "id": "chest_cogs_1"},
@@ -109,6 +120,7 @@ const LEVELS := {
 	"size": Vector2i(56, 44),
 	"base": "grass_dark",
 	"clear": "black",
+	"tint": Color(0.74, 0.82, 0.8),
 	"ops": [
 		{"op": "blob", "cx": 16, "cy": 24, "rx": 13, "ry": 10, "tile": "grass"},
 		{"op": "blob", "cx": 46, "cy": 36, "rx": 8, "ry": 6, "tile": "grass"},
@@ -195,6 +207,7 @@ const LEVELS := {
 	"size": Vector2i(48, 40),
 	"base": "void",
 	"clear": "black",
+	"tint": Color(0.46, 0.5, 0.68),
 	"ops": [
 		# entry hall
 		{"op": "frame", "x": 2, "y": 15, "w": 17, "h": 12, "tile": "stone_wall"},
@@ -299,6 +312,7 @@ const LEVELS := {
 	"size": Vector2i(30, 22),
 	"base": "void",
 	"clear": "black",
+	"tint": Color(0.92, 0.6, 0.52),
 	"ops": [
 		{"op": "frame", "x": 1, "y": 1, "w": 28, "h": 20, "tile": "marble_wall"},
 		{"op": "rect", "x": 2, "y": 2, "w": 26, "h": 18, "tile": "marble_floor"},
@@ -325,6 +339,47 @@ const LEVELS := {
 		{"type": "spark", "tile": [20, 8]},
 		{"type": "spark", "tile": [10, 14]},
 		{"type": "spark", "tile": [20, 14]},
+	],
+},
+
+# ==========================================================================
+"attic": {
+	"name": "THE LOFT",
+	"subtitle": "under the lid, out of the weather",
+	"music": "title",
+	"size": Vector2i(30, 20),
+	"base": "void",
+	"clear": "black",
+	"tint": Color(0.86, 0.78, 0.62),
+	"ops": [
+		{"op": "frame", "x": 2, "y": 2, "w": 26, "h": 16, "tile": "wood_wall"},
+		{"op": "rect", "x": 3, "y": 3, "w": 24, "h": 14, "tile": "wood_floor"},
+		{"op": "hline", "x1": 3, "x2": 26, "y": 9, "tile": "wood_wall"},
+		{"op": "hline", "x1": 3, "x2": 26, "y": 10, "tile": "wood_floor"},
+		{"op": "rect", "x": 4, "y": 14, "w": 8, "h": 3, "tile": "stairs_down"},
+		{"op": "set", "x": 14, "y": 3, "tile": "window_wall"},
+		{"op": "set", "x": 15, "y": 3, "tile": "window_wall"},
+		{"op": "scatter", "tile": "crate", "n": 7, "seed": 61, "only": "wood_floor"},
+		{"op": "scatter", "tile": "barrel", "n": 5, "seed": 62, "only": "wood_floor"},
+		{"op": "scatter", "tile": "cobweb", "n": 10, "seed": 63, "only": "wood_floor,wood_wall"},
+		{"op": "scatter", "tile": "lantern_off", "n": 6, "seed": 64, "only": "wood_floor"},
+	],
+	"spawns": {
+		"from_village": Vector2i(7, 14),
+	},
+	"entities": [
+		{"type": "door", "tile": [7, 13], "to": "village", "spawn": "from_attic",
+		 "tile_name": "arch", "label": "Hollowmere"},
+		{"type": "chest", "tile": [25, 5], "item": "crank", "qty": 1, "id": "chest_crank"},
+		{"type": "chest", "tile": [4, 5], "item": "salve", "qty": 2, "id": "chest_attic_1"},
+		{"type": "chest", "tile": [12, 13], "item": "cog", "qty": 3, "id": "chest_attic_cogs"},
+		{"type": "sign", "tile": [20, 14], "node": "sign_attic"},
+		{"type": "spark", "tile": [15, 6]},
+		{"type": "spark", "tile": [22, 8]},
+		{"type": "spark", "tile": [9, 7]},
+		{"type": "enemy", "kind": "tick", "tile": [18, 6]},
+		{"type": "enemy", "kind": "tick", "tile": [24, 13]},
+		{"type": "enemy", "kind": "moth", "tile": [13, 7]},
 	],
 },
 

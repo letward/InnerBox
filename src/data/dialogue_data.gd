@@ -296,6 +296,49 @@ const LINES := {
 			{"text": "You're worth it.", "effects": {"give": ["salve", 2], "done": "paper_moon"}},
 		],
 	},
+	"pip_crank_ask": {
+		"speaker": "Pip",
+		"portrait": "pip",
+		"lines": [
+			"You found my moon. Nobody finds things for me.",
+			"Can I ask one more thing? There is a handle. On the outside of the box, where the lid meets the wall.",
+			"I have never seen it, but the whole box hums about it. I think it is how the song gets in.",
+			"Someone put it up in the loft above the east house, years ago, so that no one could turn it by accident.",
+		],
+		"choices": [
+			{"text": "I'll go and look.", "effects": {"quest": "the_last_crank"}},
+		],
+	},
+	"pip_crank_give": {
+		"speaker": "Pip",
+		"portrait": "pip",
+		"lines": [
+			"That is it. That is the actual handle.",
+			"I am not going to turn it. I just wanted to have held the thing that winds us.",
+			"Take it. You are the one who walks to the far end of things.",
+		],
+		"choices": [
+			{"text": "It weighs more than it looks.",
+			 "effects": {"take": ["crank", 1], "done": "the_last_crank",
+			             "flag": "has_crank", "heal": 2}},
+		],
+	},
+	"pip_crank_done": {
+		"speaker": "Pip",
+		"portrait": "pip",
+		"lines": [
+			"You still have it. Good. Somebody should.",
+			"Every time you dash it feels a little less like holding your breath. I think the box is winding you.",
+		],
+	},
+	"sign_attic": {
+		"speaker": "",
+		"portrait": "box",
+		"lines": [
+			"STORES - not for playing. Crank, one. Never to be turned without asking.",
+			"The rest of this room is somebody's idea of a hiding place.",
+		],
+	},
 	"pip_done": {
 		"speaker": "Pip",
 		"portrait": "pip",

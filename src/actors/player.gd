@@ -144,7 +144,8 @@ func _timers(delta: float) -> void:
 			Sfx.play("swing", -4.0, randf_range(0.94, 1.08))
 		if Input.is_action_just_pressed("dash") and _dash_cd <= 0.0 and _dash_t <= 0.0:
 			_dash_t = DASH_TIME
-			_dash_cd = DASH_COOLDOWN
+			# the Crank winds the box a little tighter, and it winds you too
+			_dash_cd = DASH_COOLDOWN * (0.45 if Game.has_flag("has_crank") else 1.0)
 			Sfx.play("swing", -10.0, 1.6)
 
 	if world != null:

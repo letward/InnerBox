@@ -117,6 +117,12 @@ const ITEMS := {
 		"usable": false,
 		"desc": "It was never locked from the outside.",
 	},
+	"crank": {
+		"name": "The Crank",
+		"icon": ICON_LATCH,
+		"usable": false,
+		"desc": "The handle on the outside of the box. Still turns, which nobody expected.",
+	},
 	"tally_tick": {
 		"name": "Note: Rust Tick",
 		"icon": ICON_TICK,
@@ -166,6 +172,14 @@ static func collectible_ids() -> Array:
 			out.append(id)
 	out.sort()
 	return out
+
+
+static func found_lore_total() -> int:
+	var n := 0
+	for id in ITEMS.keys():
+		if is_lore(id):
+			n += 1
+	return n
 
 
 ## Lore the player has actually found, for the Codex panel.

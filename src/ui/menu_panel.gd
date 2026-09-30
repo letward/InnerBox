@@ -260,7 +260,9 @@ func _build_win() -> void:
 	_add_text("", Color.WHITE, false)
 	_add_text("Quests finished: %d / %d" % [_finished_count(), QuestData.QUESTS.size()],
 		Color(0.8, 0.78, 0.9), false)
-	_add_text("Embers recovered: %d / 3" % Game.item_count("ember"), Color(0.8, 0.78, 0.9), false)
+	_add_text("Codex entries found: %d / %d"
+		% [ItemData.found_lore().size(), ItemData.found_lore_total()],
+		Color(0.8, 0.78, 0.9), false)
 
 
 func _finished_count() -> int:

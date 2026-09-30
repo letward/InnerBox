@@ -24,8 +24,8 @@ are in the story, not to a flag you set ten minutes ago.
 
 | | |
 |---|---|
-| ![Whisperwood](docs/images/02-whisperwood.png) | ![Dialogue](docs/images/05-dialogue.png) |
-| ![The Rust Hollow](docs/images/03-rust-hollow.png) | ![Quest log](docs/images/06-quests.png) |
+| ![Whisperwood](docs/images/02-whisperwood.png) | ![Dialogue](docs/images/06-dialogue.png) |
+| ![The Rust Hollow](docs/images/03-rust-hollow.png) | ![The Loft](docs/images/05-the-loft.png) |
 
 ---
 
@@ -63,7 +63,7 @@ godot --headless --path . res://tools/verify.tscn   # content integrity check
 
 ## What is in the box
 
-**Five hand-built areas**, all described as data rather than hand-drawn tile
+**Six hand-built areas**, all described as data rather than hand-drawn tile
 maps, so a level can be edited as readable operations:
 
 | Area | What happens there |
@@ -72,14 +72,17 @@ maps, so a level can be edited as readable operations:
 | **Whisperwood** | Three braziers to relight with embers you have to find. |
 | **The Rust Hollow** | A crate-placement puzzle that unlocks the vault. |
 | **The Core** | The Corrosion: a three-phase boss fight. |
+| **The Loft** | Optional. A storeroom under the lid, and one boy's curiosity. |
 | *(the well)* | Back in Hollowmere, where the game actually ends. |
 
-**Six quests.** The main line is *The Shattered Latch → Amber Light → Iron
-Tongue → The Corroded Heart → What the Box Remembers*, plus *Paper Moon*, a
-side quest for a child who lost his moon. Every quest has a live objective line
-in the HUD and a direction arrow that points at where you need to be.
+**Seven quests.** The main line is *The Shattered Latch → Amber Light → Iron
+Tongue → The Corroded Heart → What the Box Remembers*, plus two side quests:
+*Paper Moon*, for a child who lost his moon, and *The Last Crank*, which opens
+a hidden area and pays out mechanically — carrying the crank halves your dash
+cooldown. Every quest has a live objective line in the HUD and a direction arrow
+that points at where you need to be.
 
-**Eighteen items.** Three memory shards are the spine of the plot; the rest are
+**Nineteen items.** Three memory shards are the spine of the plot; the rest are
 the small economy of a world that is running down — salve, embers, cogs, gears,
 a rusted key, a paper moon, and a paper charm that permanently adds a heart.
 
@@ -109,7 +112,7 @@ src/
 
 tools/
   gen_assets.py          draws every PNG and synthesises every WAV
-  verify_story.gd/.tscn  586 content + story assertions
+  verify_story.gd/.tscn  641 content + story assertions
   probe_levels.gd        prints the painted map of every level
   make_screenshots.sh    regenerates docs/images/
 
@@ -138,11 +141,15 @@ Two conventions keep it honest:
 - **the whole game is completable** — it plays the quest chain from the first
   line of dialogue to the ending and asserts the state machine actually gets
   there, including that three shards are obtainable and that each act hands off
-  to the next.
+  to the next;
+- **no pickup is unreachable** — scenery is seeded scatter and content is
+  hand-placed, so the verifier checks that nothing was authored inside a wall
+  (which nothing could rescue) while props that land on a chest are cleared to
+  the ground at load time.
 
 ```
 $ godot --headless --path . res://tools/verify.tscn
-=== 586 checks, 0 problems ===
+=== 641 checks, 0 problems ===
   all good
 ```
 

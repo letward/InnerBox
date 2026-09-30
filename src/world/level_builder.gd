@@ -60,6 +60,13 @@ func tile_at(c: Vector2i) -> String:
 	return String(grid[c.y][c.x])
 
 
+## The ground a prop is standing on, ignoring the prop itself.
+func ground_at(c: Vector2i) -> String:
+	if not in_bounds(c):
+		return "void"
+	return String(under[c.y][c.x])
+
+
 func set_tile(c: Vector2i, name: String) -> void:
 	if in_bounds(c):
 		grid[c.y][c.x] = name
@@ -257,7 +264,7 @@ func _add_tile(root: Node2D, atlas: Texture2D, water_tex: Texture2D, cols: int,
 		s.region_rect = Rect2(0, 0, TILE, TILE)
 		water_sprites.append(s)
 	else:
-		var idx := TileIndex.id(name)
+		var idx := TileIndex.variant_for(name, x, y)
 		s.region_rect = Rect2((idx % cols) * TILE, (idx / cols) * TILE, TILE, TILE)
 	s.position = Vector2(x * TILE, y * TILE)
 	s.z_index = z

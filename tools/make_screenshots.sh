@@ -35,13 +35,14 @@ capture 01-hollowmere  --area=village
 capture 02-whisperwood --area=woods
 capture 03-rust-hollow --area=hollow
 capture 04-the-core    --area=core
+capture 05-the-loft   --area=attic
 
 echo "capturing interface..."
-capture 05-dialogue    --area=village --talk=elder_intro
-capture 06-quests      --area=village --menu=quests
-capture 07-satchel     --area=village --menu=inventory
-capture 08-codex       --area=village --menu=codex
-capture 09-pause       --area=village --menu=pause
+capture 06-dialogue    --area=village --talk=elder_intro
+capture 07-quests      --area=village --menu=quests
+capture 08-satchel     --area=village --menu=inventory
+capture 09-codex       --area=village --menu=codex
+capture 10-pause       --area=village --menu=pause
 
 echo "capturing tile atlas..."
 python "$ROOT/tools/gen_assets.py" >/dev/null

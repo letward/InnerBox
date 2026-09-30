@@ -131,9 +131,10 @@ func _on_hearts(current: int, maximum: int) -> void:
 		icon.custom_minimum_size = Vector2(HEART_SIZE, HEART_SIZE)
 		icon.stretch_mode = TextureRect.STRETCH_SCALE
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		var filled := current - i * 2
-		icon.texture = _tex(ItemData.heart_region(0 if filled >= 2 else (1 if filled == 1 else 2)))
-		icon.modulate = Color(1, 1, 1, 1) if filled >= 1 else Color(0.75, 0.75, 0.8, 0.7)
+		# one icon == one heart; a half glyph would imply damage in quarters
+		var full := current > i
+		icon.texture = _tex(ItemData.heart_region(0 if full else 2))
+		icon.modulate = Color(1, 1, 1, 1) if full else Color(0.62, 0.62, 0.72, 0.75)
 		_heart_row.add_child(icon)
 
 

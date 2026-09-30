@@ -11,6 +11,7 @@ const QUESTS := {
 	"corroded_heart": {"title": "The Corroded Heart"},
 	"what_the_box_remembers": {"title": "What the Box Remembers"},
 	"paper_moon": {"title": "Paper Moon", "side": true},
+	"the_last_crank": {"title": "The Last Crank", "side": true},
 }
 
 
@@ -39,6 +40,10 @@ static func objective_for(id: String) -> String:
 			if not Game.has_item("moon"):
 				return "Find Pip's Paper Moon somewhere in the Rust Hollow."
 			return "Return the Paper Moon to Pip."
+		"the_last_crank":
+			if not Game.has_item("crank"):
+				return "Search the loft above the east house in Hollowmere."
+			return "Bring the Crank back to Pip."
 	return ""
 
 
@@ -98,6 +103,10 @@ static func _target_for(id: String) -> Dictionary:
 			if Game.has_item("moon"):
 				return _t("Return the Paper Moon to Pip", "village", Vector2i(12, 22))
 			return _t("Search the Rust Hollow for Pip's moon", "hollow", Vector2i(10, 34))
+		"the_last_crank":
+			if Game.has_item("crank"):
+				return _t("Bring the Crank back to Pip", "village", Vector2i(12, 22))
+			return _t("Look in the loft above the east house", "village", Vector2i(24, 6))
 	return {}
 
 
